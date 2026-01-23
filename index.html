@@ -1,1 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Physics Circuit Simulation</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>Electric Circuit Simulation</h1>
+
+<div class="controls">
+  <label>Voltage (V):
+    <input type="number" id="voltage" value="9">
+  </label>
+
+  <label>Resistance (Ω):
+    <input type="number" id="resistance" value="10">
+  </label>
+
+  <button id="toggle">Switch ON</button>
+</div>
+
+<canvas id="circuitCanvas" width="600" height="300"></canvas>
+
+<div class="output">
+  <p>Current (A): <span id="current">0</span></p>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
 
