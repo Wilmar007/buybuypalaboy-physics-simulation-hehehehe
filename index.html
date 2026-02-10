@@ -4029,6 +4029,12 @@ window.addEventListener('load', () => {
       const parsed = raw ? JSON.parse(raw) : initLocks();
       const out = {};
       LOCKABLE.forEach(k=> out[k] = !!parsed[k]);
+      // Authoritative server override for power_energy (ensure teacher override wins)
+      try{
+        if(window.serverLocks && typeof window.serverLocks.power_energy === 'boolean'){
+          out.power_energy = !!window.serverLocks.power_energy;
+        }
+      }catch(e){}
       return out;
     }catch(e){ return initLocks(); }
   }
