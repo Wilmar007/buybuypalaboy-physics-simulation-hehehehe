@@ -3898,6 +3898,7 @@ window.addEventListener('load', () => {
 <script>
 ;(function(){
   // Full replacement lock engine — single source of truth
+  if(false){
   const LOCK_KEY = 'electricityLabLocks';
   const LOCKABLE = ['series','parallel','power_energy','charge','magnetism'];
   const ALWAYS_UNLOCKED = ['home','ohms','practical'];
@@ -4169,6 +4170,7 @@ window.addEventListener('load', () => {
   window.addEventListener('storage', function(e){ try{ if(e && e.key === LOCK_KEY) {/* noop for UI hooks elsewhere */} }catch(e){} });
 
 })();
+}
 </script>
 <!-- Teacher Access UI (icon-only entry point) -->
 <style>
