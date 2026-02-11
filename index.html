@@ -3872,32 +3872,8 @@ function unlockTopic(topic){
   if(typeof applyUnlockState === 'function') try{ applyUnlockState(); }catch(e){}
 }
 
-function applyEffectiveLocks(){
-  // Compute an in-memory map of effective unlocks using canonical keys.
-  // This must NOT write or change any stored unlocks — only drives UI.
-  const locks = getLocks();
-  const canonicalTopics = ['ohms','series','parallel','power_energy','charge','magnetism'];
-  const map = {};
-  function legacyForCanonical(c){ if(c==='ohms') return 'ohms-law'; if(c==='energy') return 'power'; if(c==='charge') return 'electricCharge'; return c; }
-  canonicalTopics.forEach(c=>{
-    const val = locks[c];
-    // unlocked only when explicitly true
-    map[c] = (val === true);
-  });
-  window.EFFECTIVE_UNLOCKS = map;
-  // Apply to UI immediately
-  try{ applyUnlockState(); }catch(e){}
-}
 
-// Run after all resources and otherDOMContentLoaded handlers to ensure final lock state
-window.addEventListener('load', () => {
-  try{ applyEffectiveLocks(); }catch(e){}
-});
-</script>
-  <!-- legacy parallel lock script removed: lock managed centrally by unlockState -->
-
-  
-</script>
+// applyEffectiveLocks removed (legacy duplicate lock engine)
 <script src="script.js"></script>
 <script>
 </script>
@@ -4093,37 +4069,6 @@ window.addEventListener('load', () => {
       fetchLocksFromServer(name, section);
     }
   });
-
-})();
-</script>
-<script>
-(function(){
-
-  function applyLocks() {
-    if (!window.serverLocks) return;
-
-    document.querySelectorAll("[data-topic]").forEach(el => {
-      const topic = el.getAttribute("data-topic");
-
-      if (window.serverLocks[topic] === true) {
-        el.style.pointerEvents = "auto";
-        el.style.opacity = "1";
-      } else {
-        el.style.pointerEvents = "none";
-        el.style.opacity = "0.4";
-      }
-    });
-  }
-
-  function waitForLocks(){
-    if (window.serverLocks) {
-      applyLocks();
-    } else {
-      setTimeout(waitForLocks, 200);
-    }
-  }
-
-  waitForLocks();
 
 })();
 </script>
