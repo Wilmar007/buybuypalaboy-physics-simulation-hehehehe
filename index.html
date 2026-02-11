@@ -3653,14 +3653,9 @@ window.updateHouseholdHours = updateHouseholdHours;
     // expose helpers used elsewhere
     window.getTeacherLocks = getTeacherLocks; window.setTeacherLock = setTeacherLock; window.isTeacherLocked = isTeacherLocked;
     window.getStudentProgress = getStudentProgress; window.saveStudentProgress = saveStudentProgress;
-    window.isUnlocked = window.isUnlocked || function(topic){
-      try{
-        var raw = String(topic || '').toLowerCase().trim();
-        // Absolute early-allow list (must return true before any storage checks)
-        if(['home','ohms','ohms-law','electric charge','charge','practical'].indexOf(raw) !== -1) return true;
-        const key = (window.normalizeTopic ? window.normalizeTopic(topic) : raw.replace(/[^a-z]/g,''));
-        return window.getLocks ? window.getLocks()[key] === true : false;
-      }catch(e){ return false; }
+    window.isUnlocked = function(topic){
+      if(!window.serverLocks) return false;
+      return window.serverLocks[topic] === true;
     };
     window.getAttempts = getAttempts; window.recordAttempt = recordAttempt; window.hasAttemptsLeft = hasAttemptsLeft;
 
