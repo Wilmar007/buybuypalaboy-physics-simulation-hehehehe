@@ -896,14 +896,10 @@ button,
         const topic = normalizeTopicFromQuiz(raw);
         if(!topic) return;
 
-        // Persist unlock immediately (no debounce, no async)
+        // Persist unlock in-memory to serverLocks only (do not write localStorage)
         try{
-          const key = 'electricityLabLocks';
-          const rawLocks = localStorage.getItem(key) || '{}';
-          const locks = JSON.parse(rawLocks || '{}');
-          locks[topic] = true;
-          // Disabled: server is the only lock authority
-          // localStorage.setItem(key, JSON.stringify(locks));
+          window.serverLocks = window.serverLocks || {};
+          window.serverLocks[topic] = true;
         }catch(e){}
 
         // Mark passed map for replay-safe unlocks
@@ -1135,23 +1131,31 @@ button,
           }catch(e){ console.error(e); }
         }
 
-        async function fetchLocksFromServer(name, section) {
+        window.fetchLocksFromServer = async function(name, section) {
           const base = "https://script.google.com/macros/s/AKfycbzCff8pXngkPykh6RN6sgkNqumXNyJTjlQdTe2KVoPlmBsfzhd19-ZiTyXVrhNPGkHJ/exec";
 
-          try {
-            const res = await fetch(`${base}?name=${encodeURIComponent(name)}&section=${encodeURIComponent(section)}`);
-            const data = await res.json();
+          const res = await fetch(`${base}?name=${encodeURIComponent(name)}&section=${encodeURIComponent(section)}`);
+          const data = await res.json();
 
-            console.log("[LOCKS] server response:", data);
+          window.serverLocks = {
+            series: !!data.series,
+            parallel: !!data.parallel,
+            power_energy: !!data.power_energy,
+            charge: !!data.charge,
+            magnetism: !!data.magnetism
+          };
 
-            window.serverLocks = data;
-            return data;
-          } catch (err) {
-            console.error("Failed to fetch locks:", err);
-            window.serverLocks = {};
-            return {};
-          }
+          console.log("SERVER LOCKS APPLIED:", window.serverLocks);
+        };
+
+        // Global lock helpers — single authority: window.serverLocks
+        function isUnlocked(topic){
+          if (!window.serverLocks) return false;
+          return window.serverLocks[topic] === true;
         }
+        window.isUnlocked = isUnlocked;
+        window.getLocks = function(){ return window.serverLocks || {}; };
+        window.setLock = function(topic, unlocked){ window.serverLocks = window.serverLocks || {}; window.serverLocks[topic] = !!unlocked; };
 
         function saveAndEnter(role){
           try{
@@ -1267,13 +1271,9 @@ button,
     <script>
       (function(){
         const keys = ['home','ohms','practical','series','parallel','power_energy','charge','magnetism'];
-        function readLocks(){
-          // Always return server locks
-          return window.serverLocks || {};
-        }
         function render(){
           const container = document.getElementById('studentProgressList'); if(!container) return;
-          const locks = readLocks();
+          const locks = window.serverLocks || {};
           const nameMap = { home: 'Home', ohms: "Ohm's Law", practical: 'Practical', series: 'Series', parallel: 'Parallel', power_energy: 'Power & Energy', charge: 'Charge', magnetism: 'Magnetism' };
           const ul = document.createElement('ul');
           keys.forEach(k => {
@@ -1286,7 +1286,6 @@ button,
         }
         document.addEventListener('DOMContentLoaded', render);
         try{ render(); }catch(e){}
-        window.addEventListener('storage', function(e){ if(e.key === 'electricityLabLocks') render(); });
       })();
     </script>
 <!-- Teacher Dashboard (visible only to teachers) -->
@@ -3633,7 +3632,7 @@ window.updateHouseholdHours = updateHouseholdHours;
         const key = (window.normalizeTopic ? window.normalizeTopic(topic) : (String(topic||'').toLowerCase().replace(/[^a-z]/g,'')));
         const allowed = ['series','parallel','power_energy','charge','magnetism'];
         if(allowed.indexOf(key) === -1) return false;
-        const l = (window.getLocks ? window.getLocks() : JSON.parse(localStorage.getItem('electricityLabLocks')||'{}'));
+        const l = window.getLocks ? window.getLocks() : (window.serverLocks || {});
         return l[key] === false;
       }catch(e){ return false; }
     }
@@ -3671,15 +3670,7 @@ window.updateHouseholdHours = updateHouseholdHours;
     // expose helpers used elsewhere
     window.getTeacherLocks = getTeacherLocks; window.setTeacherLock = setTeacherLock; window.isTeacherLocked = isTeacherLocked;
     window.getStudentProgress = getStudentProgress; window.saveStudentProgress = saveStudentProgress;
-    window.isUnlocked = window.isUnlocked || function(topic){
-      try{
-        var raw = String(topic || '').toLowerCase().trim();
-        // Absolute early-allow list (must return true before any storage checks)
-        if(['home','ohms','ohms-law','electric charge','charge','practical'].indexOf(raw) !== -1) return true;
-        const key = (window.normalizeTopic ? window.normalizeTopic(topic) : raw.replace(/[^a-z]/g,''));
-        return window.getLocks ? window.getLocks()[key] === true : false;
-      }catch(e){ return false; }
-    };
+    // window.isUnlocked is defined earlier to use window.serverLocks only
     window.getAttempts = getAttempts; window.recordAttempt = recordAttempt; window.hasAttemptsLeft = hasAttemptsLeft;
 
     // (teacher helper functions defined earlier in this module)
@@ -4015,14 +4006,9 @@ window.addEventListener('load', () => {
       try{
         if(typeof window.isUnlocked === 'function'){
           locked = !window.isUnlocked(topic);
-        } else if(typeof window.getLocks === 'function'){
-          var locks = window.getLocks();
-          if(locks && Object.prototype.hasOwnProperty.call(locks, topic)) locked = locks[topic] === false;
         } else {
-          try{
-            var raw = localStorage.getItem('electricityLabLocks');
-            if(raw){ var parsed = JSON.parse(raw); if(parsed && Object.prototype.hasOwnProperty.call(parsed, topic)) locked = parsed[topic] === false; }
-          }catch(e){}
+          const locks = window.serverLocks || {};
+          locked = !(locks[topic] === true);
         }
       }catch(e){}
 
@@ -4035,27 +4021,15 @@ window.addEventListener('load', () => {
  </script>
 
 <script>
-window.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const name = localStorage.getItem("studentName");
   const section = localStorage.getItem("studentSection");
 
-  if (!name || !section) {
-    console.warn("No student info found.");
-    return;
-  }
-
-  try {
+  if (name && section) {
     await fetchLocksFromServer(name, section);
-    console.log("Server locks loaded:", window.serverLocks);
-
-    if (typeof render === "function") {
-      render();
-    }
     if (typeof updateStudentLocks === "function") {
       updateStudentLocks();
     }
-  } catch (e) {
-    console.warn("Failed to fetch server locks", e);
   }
 });
 </script>
