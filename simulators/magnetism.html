@@ -612,7 +612,7 @@
        ⚡
       </div>
       <h2 id="module-title">Magnetism</h2>
-      <p>Electrostatic Force, Electric Field, and Electric Flux</p>
+      <p>Electrostatic Force, Magnetic Field Patterns, Magnetic Poles, and Elctromagnet</p>
      </div>
      <div class="menu-box" onclick="showContent('realworld')">
       <div class="icon">
@@ -641,8 +641,9 @@
     <div class="content-header">
      <h2>Magnetism: Electrostatics</h2><button class="back-button" onclick="showMenu()">← Back to Menu</button>
     </div>
-    <div class="tabs"><button class="tab active" onclick="showTab('module2', 'simulation')">Field Visualizer</button> <button class="tab" onclick="showTab('module2', 'coulomb')">Coulomb's Law</button> <button class="tab" onclick="showTab('module2', 'demonstration')">Demonstration</button> <button class="tab" onclick="showTab('module2', 'content')">Content</button>
+    <div class="tabs"><button class="tab active" onclick="showTab('module2', 'simulation')">Field Visualizer</button> <button class="tab" onclick="showTab('module2', 'coulomb')">Coulomb's Law</button> <button class="tab" onclick="showTab('module2', 'demonstration')">Demonstration</button> <button class="tab" onclick="loadMagnetismContent()">Content</button>
     </div>
+    <div id="content-area"></div>
     <div id="module2-simulation" class="tab-content active">
      <h3>Electric Field Visualizer - Continuous Field Display</h3>
      <p>Visualize electric fields with vector arrows, field lines, and color maps. Use the probe tool to measure field strength and potential at any point!</p>
@@ -3224,5 +3225,16 @@ Where k = 8.99 × 10⁹ N⋅m²/C²`;
       updateCoulombForce();
     });
   </script>
+<script>
+function loadMagnetismContent() {
+    const area = document.getElementById("content-area");
+    area.innerHTML = `
+        <iframe 
+            src="magnetism-part.html"
+            style="width:100%; height:1200px; border:none; border-radius:12px;">
+        </iframe>
+    `;
+}
+</script>
  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c701655447104ea',t:'MTc2OTkzNDYzMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
