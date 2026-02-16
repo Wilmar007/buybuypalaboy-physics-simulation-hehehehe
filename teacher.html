@@ -3,7 +3,7 @@
 <head>
   <script>
     const LOCK_KEY = "electricityLabLocks";
-    const KEYS = ["ohms","series","parallel","power","energy","charge","magnetism"];
+    const KEYS = ["ohms","series","parallel","power_energy","charge","magnetism"];
 
     function getLocks() {
       const raw = localStorage.getItem(LOCK_KEY);
@@ -284,7 +284,7 @@ function teacherUnlock(topic) {
       const s = name.toLowerCase();
       if(s.indexOf('series') !== -1) return 'series';
       if(s.indexOf('parallel') !== -1) return 'parallel';
-      if(s.indexOf('power') !== -1 || s.indexOf('energy') !== -1) return 'energy';
+      if(s.indexOf('power') !== -1 || s.indexOf('energy') !== -1) return 'power_energy';
       if(s.indexOf('charge') !== -1) return 'charge';
       if(s.indexOf('magnet') !== -1) return 'magnetism';
       return null;
@@ -334,8 +334,7 @@ function teacherUnlock(topic) {
       {key:'practical', label:'Practical'},
       {key:'series', label:'Series'},
       {key:'parallel', label:'Parallel'},
-      {key:'power', label:'Power'},
-      {key:'energy', label:'Energy'},
+      {key:'power_energy', label:'Power & Energy'},
       {key:'charge', label:'Charge'},
       {key:'magnetism', label:'Magnetism'}
     ];
