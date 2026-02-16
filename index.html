@@ -4004,10 +4004,20 @@ window.addEventListener('load', () => {
         // by normalizing incoming JSON keys to canonical topic keys first.
         var _norm = {};
         if(json && typeof json === 'object'){
+          function _isTrueish(x){ return x === true || x === "true" || x === 1 || x === "1"; }
           Object.keys(json).forEach(function(orig){
             try{
               var canon = (window.normalizeTopic ? window.normalizeTopic(orig) : String(orig||'').toLowerCase().replace(/[^a-z_]/g,''));
-              if(canon) _norm[canon] = json[orig];
+              if(!canon) return;
+              if(canon === 'power_energy'){
+                // Combine power/energy/power_energy keys: treat as true if either is true-ish
+                var prev = _norm[canon];
+                var prevTrue = _isTrueish(prev);
+                var curTrue = _isTrueish(json[orig]);
+                _norm[canon] = (prevTrue || curTrue) ? true : false;
+              }else{
+                if(!Object.prototype.hasOwnProperty.call(_norm,canon)) _norm[canon] = json[orig];
+              }
             }catch(e){}
           });
         }
@@ -4040,6 +4050,45 @@ window.addEventListener('load', () => {
         return out;
       }
       const raw = localStorage.getItem(LOCK_KEY);
+
+  // Temporary smoke-test: simulate server JSON variants for power locks.
+  // Rules followed: do not modify production logic, do not change localStorage,
+  // only log results to console. This test runs once on load and does not
+  // persist any values.
+  (function(){
+    try{
+      var variants = [
+        { desc: '{ "power": "true" }', json: { power: "true" } },
+        { desc: '{ "power_energy": 1 }', json: { power_energy: 1 } },
+        { desc: '{ "power": 1 }', json: { power: 1 } },
+        { desc: '{ "power_energy": false }', json: { power_energy: false } }
+      ];
+
+      function canonicalizeKey(orig){
+        try{
+          return (window.normalizeTopic ? window.normalizeTopic(orig) : String(orig||'').toLowerCase().replace(/[^a-z_]/g,''));
+        }catch(e){ return String(orig||'').toLowerCase().replace(/[^a-z_]/g,''); }
+      }
+
+      function interpretValue(v){
+        return (v === true || v === "true" || v === 1 || v === "1");
+      }
+
+      variants.forEach(function(v){
+        try{
+          // Build normalized map from simulated server JSON
+          var _norm = {};
+          Object.keys(v.json).forEach(function(orig){ _norm[ canonicalizeKey(orig) ] = v.json[orig]; });
+
+          var final = false;
+          if(Object.prototype.hasOwnProperty.call(_norm,'power_energy')){
+            final = interpretValue(_norm['power_energy']);
+          }
+          console.log('[LOCKS-TEST] variant:', v.desc, '-> canonical `power_energy` =', final);
+        }catch(e){ console.log('[LOCKS-TEST] error for variant', v, e); }
+      });
+    }catch(e){ console.log('[LOCKS-TEST] unexpected error', e); }
+  })();
       const parsed = raw ? JSON.parse(raw) : initLocks();
       const out = {};
       LOCKABLE.forEach(k=> out[k] = !!parsed[k]);
