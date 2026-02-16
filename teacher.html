@@ -126,7 +126,7 @@
     {label:"Ohm's Law", key:'ohms-law', storeKey:'ohms', attemptKey:'ohms'},
     {label:'Series', key:'series', storeKey:'series', attemptKey:'series'},
     {label:'Parallel', key:'parallel', storeKey:'parallel', attemptKey:'parallel'},
-    {label:'Energy', key:'power', storeKey:'energy', attemptKey:'energy'},
+    {label:'Power & Energy', key:'power_energy', storeKey:'power_energy', attemptKey:'power_energy'},
     {label:'Charge', key:'electricCharge', storeKey:'charge', attemptKey:'charge'},
     {label:'Magnetism', key:'magnetism', storeKey:'magnetism', attemptKey:'magnetism'}
   ];
@@ -151,7 +151,14 @@
       const raw = localStorage.getItem(KEYS.locks);
       const obj = raw ? JSON.parse(raw) : {};
       // Ensure keys exist for known topics (do not remove other keys)
-      const defaults = { series:false, parallel:false, energy:false, charge:false, magnetism:false, ohms:false };
+      const defaults = { 
+  series:false, 
+  parallel:false, 
+  power_energy:false,
+  charge:false, 
+  magnetism:false, 
+  ohms:false 
+};
       return Object.assign({}, defaults, obj);
     }catch(e){ return { series:false, parallel:false, energy:false, charge:false, magnetism:false, ohms:false }; }
   }
